@@ -7,7 +7,9 @@
     </header>
 
     <main class="max-w-7xl mx-auto py-6 px-4">
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div v-if="loading" class="text-center py-10 text-gray-500">加载中...</div>
+      <div v-else-if="error" class="text-center py-10 text-red-500">{{ error }}</div>
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div
           v-for="grade in grades"
           :key="grade.id"
@@ -45,22 +47,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import type { Grade, Topic } from '~/types'
 
 const grades = ref<Grade[]>([])
 const topics = ref<Topic[]>([])
 const selectedGrade = ref<Grade | null>(null)
+const loading = ref(true)
+const error = ref('')
 
-onMounted(async () => {
-  const data = await $fetch<Grade[]>('/api/grades')
-  grades.value = data
-})
+// 使用 useFetch 进行 SSR 友好数据获取
+const { data, error: fetchError } = await useFetch<Grade[]>('/api/grades')
+
+if (fetchError.value) {
+  error.value = '加载失败: ' + fetchError.value.message
+} else if (data.value) {
+  grades.value = data.value
+}
+loading.value = false
 
 async function selectGrade(grade: Grade) {
   selectedGrade.value = grade
-  const data = await $fetch<Topic[]>(`/api/grades/${grade.id}/topics`)
-  topics.value = data
+  try {
+    const res = await $fetch<Topic[]>(`/api/grades/${grade.id}/topics`)
+    topics.value = res
+  } catch (e: any) {
+    console.error('加载专题失败:', e)
+  }
 }
 
 function startPractice(topic: Topic) {

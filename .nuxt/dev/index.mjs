@@ -652,7 +652,7 @@ const _inlineRuntimeConfig = {
   "public": {
     "apiBase": "/api"
   },
-  "databaseUrl": "postgresql://lomiushuk@localhost:5432/olympiad_math?schema=public"
+  "databaseUrl": "postgresql://neondb_owner:npg_X2Q1OtsAwZve@ep-patient-darkness-a1e4m25m-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 };
 const envOptions = {
   prefix: "NITRO_",
