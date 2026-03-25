@@ -21,7 +21,5 @@ export default defineNuxtConfig({
     }
   },
 
-  nitro: {
-    preset: 'standalone'
-  }
+  nitro: {}
 })
