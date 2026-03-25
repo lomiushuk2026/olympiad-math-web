@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Grade {
+  id          Int      @id @default(autoincrement())
+  name        String   // 一年级、二年级...
+  level       Int      // 1, 2, 3, 4, 5, 6
+  description String?
+  topics      Topic[]
+  questions   Question[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Topic {
+  id         Int      @id @default(autoincrement())
+  name       String   // 计算问题、行程问题...
+  parentId   Int?     // 父专题ID
+  parent     Topic?   @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children   Topic[]  @relation("TopicHierarchy")
+  gradeId    Int
+  grade      Grade    @relation(fields: [gradeId], references: [id])
+  orderIndex Int      @default(0)
+  questions  Question[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([gradeId])
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  gradeId       Int
+  grade         Grade    @relation(fields: [gradeId], references: [id])
+  topicId       Int
+  topic         Topic    @relation(fields: [topicId], references: [id])
+  difficulty    Int      // 1=简单, 2=中等, 3=困难
+  type          String   // choice=选择题, fill=填空题, solution=解答题
+  content       String   // 题目内容
+  options       Json?    // 选项数组（用于选择题）
+  answer        String   // 正确答案
+  explanation   String   // 详细解析
+  knowledgePoints String[] // 知识点标签
+  source        String   @default("学而思")
+  sourceUrl     String?
+  userRecords   UserQuestionRecord[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([gradeId])
+  @@index([topicId])
+  @@index([difficulty])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  openid    String   @unique // 微信openid
+  nickname  String?
+  avatar    String?
+  records   UserQuestionRecord[]
+  practices UserDailyPractice[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserQuestionRecord {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id])
+  questionId        Int
+  question          Question  @relation(fields: [questionId], references: [id])
+  status            String    @default("not_started") // not_started, learning, mastered, wrong
+  wrongCount        Int       @default(0)
+  correctCount      Int       @default(0)
+  lastReviewedAt    DateTime?
+  nextReviewAt      DateTime?
+  currentInterval   Int       @default(1) // 当前间隔天数
+  easeFactor        Float     @default(2.5) // 难度因子
+  consecutiveCorrect Int      @default(0) // 连续正确次数
+  difficultyRating  Int?      // 用户对本题的难度评分 1-5
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([nextReviewAt])
+}
+
+model UserDailyPractice {
+  id                    Int       @id @default(autoincrement())
+  userId                Int
+  user                  User      @relation(fields: [userId], references: [id])
+  practiceDate          String    // YYYY-MM-DD
+  questionIds           Int[]     // 5道题ID
+  userAnswers           Json?     // 用户答案
+  results               Json?     // 每题是否正确
+  difficultyDistribution Json?    // {easy: 1, medium: 3, hard: 1}
+  topicCoverage         Int[]     // 覆盖的专题ID
+  completed             Boolean   @default(false)
+  completedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([userId, practiceDate])
+  @@index([userId])
+  @@index([practiceDate])
+}

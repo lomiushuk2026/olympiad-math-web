@@ -1,0 +1,4 @@
+
+import { viteNodeFetch } from "file:///Users/lomiushuk/olympiad-math/web/node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@22.19.15_magicast@0.5.2_nuxt@3.21.2_@parcel+watch_a85836b864ece74bc6335cf43779c09a/node_modules/@nuxt/vite-builder/dist/vite-node.mjs"
+export default () => viteNodeFetch.getManifest()
+    
