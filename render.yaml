@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: olympiad-math-web
+    env: node
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_X2Q1OtsAwZve@ep-patient-darkness-a1e4m25m-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
